@@ -252,8 +252,15 @@ export type RouterType = {
     url: string;
     user_info: {
       username: string;
+      avatar?: string;
     };
     publish_time: string;
+    count_info?: {
+      agree_num: number;
+      total_comment_num: number;
+      favorite_num: number;
+      reward_num: number;
+    };
   };
   ifanr: {
     buzz_original_url: string;

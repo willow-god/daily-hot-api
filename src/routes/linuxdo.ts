@@ -19,7 +19,7 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
 
 const getList = async (noCache: boolean) => {
   const url = "https://linux.do/top.rss?period=weekly";
-  const result = await get({
+  const result = await get<string>({
     url,
     noCache,
     headers: {

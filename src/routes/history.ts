@@ -1,5 +1,4 @@
 import type { RouterData, ListContext, Options } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { load } from "cheerio";
 import { get } from "../utils/getData.js";
 import { getCurrentDateTime } from "../utils/getTime.js";
@@ -23,12 +22,28 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
   };
   return routeData;
 };
+
+interface HistoryItem {
+  title: string;
+  cover: string;
+  pic_share: string;
+  desc: string;
+  year: string;
+  link: string;
+}
+
+interface HistoryResponse {
+  [month: string]: {
+    [monthDay: string]: HistoryItem[];
+  };
+}
+
 const getList = async (options: Options, noCache: boolean) => {
   const { month, day } = options;
   const monthStr = month?.toString().padStart(2, "0");
   const dayStr = day?.toString().padStart(2, "0");
   const url = `https://baike.baidu.com/cms/home/eventsOnHistory/${monthStr}.json`;
-  const result = await get({
+  const result = await get<HistoryResponse>({
     url,
     noCache,
     params: {
@@ -38,7 +53,7 @@ const getList = async (options: Options, noCache: boolean) => {
   const list = monthStr ? result.data[monthStr][monthStr + dayStr] : [];
   return {
     ...result,
-    data: list.map((v: RouterType["history"], index: number) => ({
+    data: list.map((v, index: number) => ({
       id: index,
       title: load(v.title).text().trim(),
       cover: v.cover ? v.pic_share : undefined,

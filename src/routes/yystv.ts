@@ -1,5 +1,4 @@
 import type { RouterData } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -18,13 +17,25 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
   return routeData;
 };
 
+interface YystvItem {
+  id: string;
+  title: string;
+  cover: string;
+  author: string;
+  createtime: string;
+}
+
+interface YystvResponse {
+  data: YystvItem[];
+}
+
 const getList = async (noCache: boolean) => {
   const url = "https://www.yystv.cn/home/get_home_docs_by_page";
-  const result = await get({ url, noCache });
+  const result = await get<YystvResponse>({ url, noCache });
   const list = result.data.data;
   return {
     ...result,
-    data: list.map((v: RouterType["yystv"]) => ({
+    data: list.map((v) => ({
       id: v.id,
       title: v.title,
       cover: v.cover,

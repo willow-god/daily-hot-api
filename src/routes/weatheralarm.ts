@@ -1,5 +1,4 @@
 import type { RouterData, ListContext, Options } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -23,14 +22,30 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
   return routeData;
 };
 
+interface WeatherAlarmItem {
+  alertid: string;
+  title: string;
+  issuetime: string;
+  pic: string;
+  url: string;
+}
+
+interface WeatherAlarmResponse {
+  data: {
+    page: {
+      list: WeatherAlarmItem[];
+    };
+  };
+}
+
 const getList = async (options: Options, noCache: boolean) => {
   const { province } = options;
   const url = `http://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=20&signaltype=&signallevel=&province=${encodeURIComponent(province || "")}`;
-  const result = await get({ url, noCache });
+  const result = await get<WeatherAlarmResponse>({ url, noCache });
   const list = result.data.data.page.list;
   return {
     ...result,
-    data: list.map((v: RouterType["weatheralarm"]) => ({
+    data: list.map((v) => ({
       id: v.alertid,
       title: v.title,
       desc: v.issuetime + " " + v.title,

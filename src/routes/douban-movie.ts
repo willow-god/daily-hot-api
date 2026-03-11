@@ -29,7 +29,7 @@ const getNumbers = (text: string | undefined): number => {
 
 const getList = async (noCache: boolean) => {
   const url = `https://movie.douban.com/chart/`;
-  const result = await get({
+  const result = await get<string>({
     url,
     noCache,
     headers: {

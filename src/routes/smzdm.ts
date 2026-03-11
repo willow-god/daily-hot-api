@@ -1,5 +1,4 @@
 import type { ListContext, Options, RouterData } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -31,14 +30,29 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
   return routeData;
 };
 
+interface SmzdmItem {
+  article_id: string;
+  title: string;
+  content: string;
+  pic_url: string;
+  nickname: string;
+  collection_count: string;
+  time_sort: string;
+  jump_link: string;
+}
+
+interface SmzdmResponse {
+  data: SmzdmItem[];
+}
+
 const getList = async (options: Options, noCache: boolean) => {
   const { type } = options;
   const url = `https://post.smzdm.com/rank/json_more/?unit=${type}`;
-  const result = await get({ url, noCache });
+  const result = await get<SmzdmResponse>({ url, noCache });
   const list = result.data.data;
   return {
     ...result,
-    data: list.map((v: RouterType["smzdm"]) => ({
+    data: list.map((v) => ({
       id: v.article_id,
       title: v.title,
       desc: v.content,

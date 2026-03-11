@@ -1,5 +1,4 @@
 import type { RouterData } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { post } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -17,9 +16,22 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
   return routeData;
 };
 
+interface NgaItem {
+  tid: string;
+  subject: string;
+  author: string;
+  replies: number;
+  postdate: string;
+  tpcurl: string;
+}
+
+interface NgaResponse {
+  result: NgaItem[][];
+}
+
 const getList = async (noCache: boolean) => {
   const url = `https://ngabbs.com/nuke.php?__lib=load_topic&__act=load_topic_reply_ladder2&opt=1&all=1`;
-  const result = await post({
+  const result = await post<NgaResponse>({
     url,
     noCache,
     headers: {
@@ -41,7 +53,7 @@ const getList = async (noCache: boolean) => {
   const list = result.data.result[0];
   return {
     ...result,
-    data: list.map((v: RouterType["ngabbs"]) => ({
+    data: list.map((v) => ({
       id: v.tid,
       title: v.subject,
       author: v.author,

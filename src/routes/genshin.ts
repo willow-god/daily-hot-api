@@ -1,5 +1,4 @@
 import type { RouterData, ListContext, Options } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -27,14 +26,39 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
   return routeData;
 };
 
+interface MiyoushePostData {
+  post_id: string;
+  subject: string;
+  content: string;
+  cover: string;
+  images?: string[];
+  created_at: number;
+  view_status: number;
+}
+
+interface MiyousheUser {
+  nickname: string;
+}
+
+interface MiyousheItem {
+  post: MiyoushePostData;
+  user?: MiyousheUser;
+}
+
+interface MiyousheResponse {
+  data: {
+    list: MiyousheItem[];
+  };
+}
+
 const getList = async (options: Options, noCache: boolean) => {
   const { type } = options;
   const url = `https://bbs-api-static.miyoushe.com/painter/wapi/getNewsList?client_type=4&gids=2&last_id=&page_size=20&type=${type}`;
-  const result = await get({ url, noCache });
+  const result = await get<MiyousheResponse>({ url, noCache });
   const list = result.data.data.list;
   return {
     ...result,
-    data: list.map((v: RouterType["miyoushe"]) => {
+    data: list.map((v) => {
       const data = v.post;
       return {
         id: data.post_id,

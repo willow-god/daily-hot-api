@@ -1,7 +1,7 @@
-import type { Handler } from "hono";
+import type { Handler, Context } from "hono";
 import { config } from "./config.js";
 
-const handler: Handler = (c) => {
+const handler: Handler = (c: Context) => {
   if (config.DISALLOW_ROBOT) {
     return c.text("User-agent: *\nDisallow: /");
   } else {

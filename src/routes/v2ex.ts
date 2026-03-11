@@ -1,5 +1,4 @@
 import type { RouterData, ListContext, Options } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 
 export const handleRoute = async (c: ListContext, noCache: boolean) => {
@@ -25,14 +24,27 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
   return routeData;
 };
 
+interface V2exMember {
+  username: string;
+}
+
+interface V2exItem {
+  id: string;
+  title: string;
+  content: string;
+  member: V2exMember;
+  replies: number;
+  url: string;
+}
+
 const getList = async (options: Options, noCache: boolean) => {
   const { type } = options;
   const url = `https://www.v2ex.com/api/topics/${type}.json`;
-  const result = await get({ url, noCache });
+  const result = await get<V2exItem[]>({ url, noCache });
   const list = result.data;
   return {
     ...result,
-    data: list.map((v: RouterType["v2ex"]) => ({
+    data: list.map((v) => ({
       id: v.id,
       title: v.title,
       desc: v.content,

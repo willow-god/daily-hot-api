@@ -1,5 +1,4 @@
 import type { ListContext, RouterData } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 
 
@@ -20,16 +19,25 @@ const headers =  {
   'Upgrade-Insecure-Requests': '1',
 }
 
+interface CategoryItem {
+  category_id: string;
+  category_name: string;
+}
+
+interface CategoryResponse {
+  data: CategoryItem[];
+}
+
 const category_url = 'https://api.juejin.cn/tag_api/v1/query_category_briefs'
 const getCategory = async()=>{
-  const res = await get({
+  const res = await get<CategoryResponse>({
     url: category_url,
     headers
   })
   const data = res?.data?.data || []
   const typeObj: Record<string, string> = {}
   typeObj['1'] = '综合'
-  data.forEach((c: { category_id: string; category_name: string }) => {
+  data.forEach((c) => {
     typeObj[c.category_id] = c.category_name
   })
 
@@ -57,13 +65,36 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
   return routeData;
 };
 
+interface JuejinContent {
+  content_id: string;
+  title: string;
+}
+
+interface JuejinAuthor {
+  name: string;
+}
+
+interface JuejinContentCounter {
+  hot_rank: number;
+}
+
+interface JuejinItem {
+  content: JuejinContent;
+  author: JuejinAuthor;
+  content_counter: JuejinContentCounter;
+}
+
+interface JuejinResponse {
+  data: JuejinItem[];
+}
+
 const getList = async (noCache: boolean, type: number | string = 1) => {
   const url = `https://api.juejin.cn/content_api/v1/content/article_rank?category_id=${type}&type=hot`;
-  const result = await get({ url, noCache, headers });
+  const result = await get<JuejinResponse>({ url, noCache, headers });
   const list = result.data.data;
   return {
     ...result,
-    data: list.map((v: RouterType["juejin"]) => ({
+    data: list.map((v) => ({
       id: v.content.content_id,
       title: v.content.title,
       author: v.author.name,

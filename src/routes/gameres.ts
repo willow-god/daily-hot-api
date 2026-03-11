@@ -1,8 +1,7 @@
-import type { RouterData } from "../types.js";
+import type { ListItem, RouterData } from "../types.js";
 import { load } from "cheerio";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
-import { RouterType } from "../router.types.js";
 
 export const handleRoute = async (_: undefined, noCache: boolean) => {
   const listData = await getList(noCache);
@@ -23,7 +22,7 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
 
 const getList = async (noCache: boolean) => {
   const url = `https://www.gameres.com`;
-  const result = await get({ url, noCache });
+  const result = await get<string>({ url, noCache });
   const $ = load(result.data);
 
   const container = $('div[data-news-pane-id="100000"]');
@@ -56,7 +55,7 @@ const getList = async (noCache: boolean) => {
       url,
       id: url,
       mobileUrl: url,
-    } as RouterType["gameres"];
+    } satisfies ListItem;
   });
 
   return {

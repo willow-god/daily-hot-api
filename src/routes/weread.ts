@@ -1,5 +1,4 @@
 import type { ListContext, RouterData } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import getWereadID from "../utils/getToken/weread.js";
 import { getTime } from "../utils/getTime.js";
@@ -32,9 +31,27 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
   return routeData;
 };
 
+interface WereadBookInfo {
+  bookId: string;
+  title: string;
+  author: string;
+  intro: string;
+  cover: string;
+  publishTime: string;
+}
+
+interface WereadBookItem {
+  bookInfo: WereadBookInfo;
+  readingCount: number;
+}
+
+interface WereadResponse {
+  books: WereadBookItem[];
+}
+
 const getList = async (noCache: boolean, type='rising') => {
   const url = `https://weread.qq.com/web/bookListInCategory/${type}?rank=1`;
-  const result = await get({
+  const result = await get<WereadResponse>({
     url,
     noCache,
     headers: {
@@ -45,7 +62,7 @@ const getList = async (noCache: boolean, type='rising') => {
   const list = result.data.books;
   return {
     ...result,
-    data: list.map((v: RouterType["weread"]) => {
+    data: list.map((v) => {
       const data = v.bookInfo;
       return {
         id: data.bookId,

@@ -34,7 +34,7 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
 const getList = async (options: Options, noCache: boolean): Promise<RouterResType> => {
   const { type } = options;
   const url = `https://www.52pojie.cn/forum.php?mod=guide&view=${type}&rss=1`;
-  const result = await get({
+  const result = await get<Buffer>({
     url,
     noCache,
     responseType: "arraybuffer",

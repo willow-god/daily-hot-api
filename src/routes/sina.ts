@@ -1,5 +1,4 @@
 import type { RouterData, ListContext, Options } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { parseChineseNumber } from "../utils/getNum.js";
 import { get } from "../utils/getData.js";
 
@@ -37,14 +36,37 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
   return routeData;
 };
 
+interface SinaBase {
+  base: {
+    uniqueId: string;
+    url: string;
+  };
+}
+
+interface SinaInfo {
+  title: string;
+  hotValue: string;
+}
+
+interface SinaHotItem {
+  base: SinaBase;
+  info: SinaInfo;
+}
+
+interface SinaResponse {
+  data: {
+    hotList: SinaHotItem[];
+  };
+}
+
 const getList = async (options: Options, noCache: boolean) => {
   const { type } = options;
   const url = `https://newsapp.sina.cn/api/hotlist?newsId=HB-1-snhs%2Ftop_news_list-${type}`;
-  const result = await get({ url, noCache });
+  const result = await get<SinaResponse>({ url, noCache });
   const list = result.data.data.hotList;
   return {
     ...result,
-    data: list.map((v: RouterType["sina"]) => {
+    data: list.map((v) => {
       const base = v.base;
       const info = v.info;
       return {

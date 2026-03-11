@@ -32,7 +32,7 @@ const replaceLink = (url: string, getId: boolean = false) => {
 
 const getList = async (noCache: boolean) => {
   const url = `https://m.ithome.com/rankm/`;
-  const result = await get({ url, noCache });
+  const result = await get<string>({ url, noCache });
   const $ = load(result.data);
   const listDom = $(".rank-box .placeholder");
   const listData = listDom.toArray().map((item) => {

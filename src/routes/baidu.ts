@@ -1,5 +1,4 @@
 import type { RouterData, ListContext, Options, RouterResType } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 
 const typeMap: Record<string, string> = {
@@ -31,10 +30,31 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
   return routeData;
 };
 
+interface BaiduItem {
+  index?: number;
+  word?: string;
+  title?: string;
+  desc?: string;
+  img?: string;
+  imgInfo?: { src: string };
+  show?: string;
+  hotScore?: string;
+  hotTag?: string;
+  query?: string;
+  rawUrl?: string;
+  url?: string;
+  content?: BaiduItem[];
+}
+
+interface BaiduSData {
+  data?: { cards?: Array<{ content?: BaiduItem[] }> };
+  cards?: Array<{ content?: BaiduItem[] }>;
+}
+
 const getList = async (options: Options, noCache: boolean): Promise<RouterResType> => {
   const { type } = options;
   const url = `https://top.baidu.com/board?tab=${type}`;
-  const result = await get({
+  const result = await get<string>({
     url,
     noCache,
     headers: {
@@ -51,13 +71,13 @@ const getList = async (options: Options, noCache: boolean): Promise<RouterResTyp
       data: [],
     };
   }
-  let jsonObject: RouterType["baidu"][] = [];
+  let jsonObject: BaiduItem[] = [];
   try {
-    const sData = JSON.parse(matchResult[1]);
+    const sData: BaiduSData = JSON.parse(matchResult[1]);
     const cardContent = sData.data?.cards?.[0]?.content ?? sData.cards?.[0]?.content;
     if (Array.isArray(cardContent)) {
       if (cardContent.length > 0 && Array.isArray(cardContent[0]?.content)) {
-        jsonObject = cardContent[0].content;
+        jsonObject = cardContent[0].content!;
       } else {
         jsonObject = cardContent;
       }
@@ -67,7 +87,7 @@ const getList = async (options: Options, noCache: boolean): Promise<RouterResTyp
   }
   return {
     ...result,
-    data: jsonObject.map((v: RouterType["baidu"], index: number) => {
+    data: jsonObject.map((v, index: number) => {
       const title = v.word ?? v.title ?? "";
       return {
         id: v.index ?? index + 1,

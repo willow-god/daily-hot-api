@@ -1,5 +1,4 @@
 import type { RouterData, RouterResType } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { getToken, sign } from "../utils/getToken/51cto.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
@@ -17,6 +16,23 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
   return routeData;
 };
 
+interface CtoItem {
+  source_id: string;
+  title: string;
+  cover: string;
+  abstract: string;
+  pubdate: string;
+  url: string;
+}
+
+interface CtoResponse {
+  data: {
+    data: {
+      list: CtoItem[];
+    };
+  };
+}
+
 const getList = async (noCache: boolean): Promise<RouterResType> => {
   const url = `https://api-media.51cto.com/index/index/recommend`;
   const params = {
@@ -27,7 +43,7 @@ const getList = async (noCache: boolean): Promise<RouterResType> => {
   };
   const timestamp = Date.now();
   const token = (await getToken()) as string;
-  const result = await get({
+  const result = await get<CtoResponse>({
     url,
     params: {
       ...params,
@@ -40,7 +56,7 @@ const getList = async (noCache: boolean): Promise<RouterResType> => {
   const list = result.data.data.data.list;
   return {
     ...result,
-    data: list.map((v: RouterType["51cto"]) => ({
+    data: list.map((v) => ({
       id: v.source_id,
       title: v.title,
       cover: v.cover,

@@ -1,5 +1,4 @@
 import type { RouterData } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -16,14 +15,29 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
   return routeData;
 };
 
+interface LolItem {
+  iDocID: string;
+  sTitle: string;
+  sIMG: string;
+  sAuthor: string;
+  iTotalPlay: string;
+  sCreated: string;
+}
+
+interface LolResponse {
+  data: {
+    result: LolItem[];
+  };
+}
+
 const getList = async (noCache: boolean) => {
   const url =
     "https://apps.game.qq.com/cmc/zmMcnTargetContentList?r0=json&page=1&num=30&target=24&source=web_pc";
-  const result = await get({ url, noCache });
+  const result = await get<LolResponse>({ url, noCache });
   const list = result.data.data.result;
   return {
     ...result,
-    data: list.map((v: RouterType["lol"]) => ({
+    data: list.map((v) => ({
       id: v.iDocID,
       title: v.sTitle,
       cover: `https:${v.sIMG}`,

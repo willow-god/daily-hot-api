@@ -1,7 +1,6 @@
-import type { RouterData } from "../types.js";
+import type { ListItem, RouterData } from "../types.js";
 import { get } from "../utils/getData.js";
 import { load } from "cheerio";
-import type { RouterType } from "../router.types.js";
 
 export const handleRoute = async (_: undefined, noCache: boolean) => {
   const listData = await getList(noCache);
@@ -19,7 +18,7 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
 
 const getList = async (noCache: boolean) => {
   const baseUrl = "https://www.producthunt.com";
-  const result = await get({ 
+  const result = await get<string>({
     url: baseUrl,
     noCache,
     headers: {
@@ -29,7 +28,7 @@ const getList = async (noCache: boolean) => {
 
   try {
     const $ = load(result.data);
-    const stories: RouterType["producthunt"][] = [];
+    const stories: ListItem[] = [];
 
     $("[data-test=homepage-section-0] [data-test^=post-item]").each((_, el) => {
       const a = $(el).find("a").first();
@@ -37,7 +36,7 @@ const getList = async (noCache: boolean) => {
       const title = $(el).find("a[data-test^=post-name]").text().trim();
       const id = $(el).attr("data-test")?.replace("post-item-", "");
       const vote = $(el).find("[data-test=vote-button]").text().trim();
-      
+
       if (path && id && title) {
         stories.push({
           id,
@@ -57,4 +56,4 @@ const getList = async (noCache: boolean) => {
   } catch (error) {
     throw new Error(`Failed to parse Product Hunt HTML: ${error}`);
   }
-}; 
+};

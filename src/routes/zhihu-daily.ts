@@ -1,5 +1,4 @@
 import type { RouterData } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 
 export const handleRoute = async (_: undefined, noCache: boolean) => {
@@ -16,9 +15,22 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
   return routeData;
 };
 
+interface ZhihuDailyStory {
+  id: string;
+  title: string;
+  images?: string[];
+  hint: string;
+  type: number;
+  url: string;
+}
+
+interface ZhihuDailyResponse {
+  stories: ZhihuDailyStory[];
+}
+
 const getList = async (noCache: boolean) => {
   const url = `https://daily.zhihu.com/api/4/news/latest`;
-  const result = await get({
+  const result = await get<ZhihuDailyResponse>({
     url,
     noCache,
     headers: {
@@ -26,10 +38,10 @@ const getList = async (noCache: boolean) => {
       Host: "daily.zhihu.com",
     },
   });
-  const list = result.data.stories.filter((el: RouterType["zhihu-daily"]) => el.type === 0);
+  const list = result.data.stories.filter((el) => el.type === 0);
   return {
     ...result,
-    data: list.map((v: RouterType["zhihu-daily"]) => ({
+    data: list.map((v) => ({
       id: v.id,
       title: v.title,
       cover: v.images?.[0] ?? undefined,

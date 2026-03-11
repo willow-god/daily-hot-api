@@ -48,7 +48,7 @@ const encWbi = (params: WbiParams, img_key: string, sub_key: string): string => 
 
 // 获取最新的 img_key 和 sub_key
 const getWbiKeys = async (): Promise<EncodedKeys> => {
-  const result = await get({
+  const result = await get<{ wbi_img?: { img_url?: string; sub_url?: string } }>({
     url: "https://api.bilibili.com/x/web-interface/nav",
     headers: {
       // SESSDATA 字段

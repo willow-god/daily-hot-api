@@ -1,7 +1,6 @@
-import type { RouterData } from "../types.js";
+import type { ListItem, RouterData } from "../types.js";
 import { get } from "../utils/getData.js";
 import { load } from "cheerio";
-import type { RouterType } from "../router.types.js";
 
 export const handleRoute = async (_: undefined, noCache: boolean) => {
   const listData = await getList(noCache);
@@ -19,8 +18,8 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
 
 const getList = async (noCache: boolean) => {
   const baseUrl = "https://news.ycombinator.com";
-  const result = await get({ 
-    url: baseUrl, 
+  const result = await get<string>({
+    url: baseUrl,
     noCache,
     headers: {
       userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
@@ -29,14 +28,14 @@ const getList = async (noCache: boolean) => {
 
   try {
     const $ = load(result.data);
-    const stories: RouterType["hackernews"][] = [];
+    const stories: ListItem[] = [];
 
     $(".athing").each((_, el) => {
       const item = $(el);
       const id = item.attr("id") || "";
       const title = item.find(".titleline a").first().text().trim();
       const url = item.find(".titleline a").first().attr("href");
-      
+
       // 获取分数并转换为数字
       const scoreText = $(`#score_${id}`).text().match(/\d+/)?.[0];
       const hot = scoreText ? parseInt(scoreText, 10) : undefined;
@@ -60,4 +59,4 @@ const getList = async (noCache: boolean) => {
   } catch (error) {
     throw new Error(`Failed to parse HackerNews HTML: ${error}`);
   }
-}; 
+};

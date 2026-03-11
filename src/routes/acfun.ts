@@ -1,5 +1,4 @@
 import type { RouterData, ListContext, Options, RouterResType } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -50,10 +49,24 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
   return routeData;
 };
 
+interface AcfunItem {
+  dougaId: string;
+  contentTitle: string;
+  contentDesc: string;
+  coverUrl: string;
+  userName: string;
+  contributeTime: string;
+  likeCount: number;
+}
+
+interface AcfunResponse {
+  rankList: AcfunItem[];
+}
+
 const getList = async (options: Options, noCache: boolean): Promise<RouterResType> => {
   const { type, range } = options;
   const url = `https://www.acfun.cn/rest/pc-direct/rank/channel?channelId=${type === "-1" ? "" : type}&rankLimit=30&rankPeriod=${range}`;
-  const result = await get({
+  const result = await get<AcfunResponse>({
     url,
     headers: {
       Referer: `https://www.acfun.cn/rank/list/?cid=-1&pcid=${type}&range=${range}`,
@@ -63,7 +76,7 @@ const getList = async (options: Options, noCache: boolean): Promise<RouterResTyp
   const list = result.data.rankList;
   return {
     ...result,
-    data: list.map((v: RouterType["acfun"]) => ({
+    data: list.map((v) => ({
       id: v.dougaId,
       title: v.contentTitle,
       desc: v.contentDesc,

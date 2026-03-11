@@ -1,5 +1,4 @@
 import type { RouterData } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -17,13 +16,31 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
   return routeData;
 };
 
+interface TiebaItem {
+  topic_id: string;
+  topic_name: string;
+  topic_desc: string;
+  topic_pic: string;
+  discuss_num: number;
+  create_time: string;
+  topic_url: string;
+}
+
+interface TiebaResponse {
+  data: {
+    bang_topic: {
+      topic_list: TiebaItem[];
+    };
+  };
+}
+
 const getList = async (noCache: boolean) => {
   const url = `https://tieba.baidu.com/hottopic/browse/topicList`;
-  const result = await get({ url, noCache });
+  const result = await get<TiebaResponse>({ url, noCache });
   const list = result.data.data.bang_topic.topic_list;
   return {
     ...result,
-    data: list.map((v: RouterType["tieba"]) => ({
+    data: list.map((v) => ({
       id: v.topic_id,
       title: v.topic_name,
       desc: v.topic_desc,

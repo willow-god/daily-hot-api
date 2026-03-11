@@ -1,5 +1,4 @@
 import type { RouterData } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -16,13 +15,27 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
   return routeData;
 };
 
+interface ThepaperItem {
+  contId: string;
+  name: string;
+  pic: string;
+  praiseTimes: string;
+  pubTimeLong: number;
+}
+
+interface ThepaperResponse {
+  data: {
+    hotNews: ThepaperItem[];
+  };
+}
+
 const getList = async (noCache: boolean) => {
   const url = `https://cache.thepaper.cn/contentapi/wwwIndex/rightSidebar`;
-  const result = await get({ url, noCache });
+  const result = await get<ThepaperResponse>({ url, noCache });
   const list = result.data.data.hotNews;
   return {
     ...result,
-    data: list.map((v: RouterType["thepaper"]) => ({
+    data: list.map((v) => ({
       id: v.contId,
       title: v.name,
       cover: v.pic,

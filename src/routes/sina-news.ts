@@ -1,5 +1,4 @@
 import type { RouterData, ListContext, Options } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { getTime, getCurrentDateTime } from "../utils/getTime.js";
 import { get } from "../utils/getData.js";
 
@@ -111,17 +110,27 @@ const parseData = (data: string) => {
   }
 };
 
+interface SinaNewsItem {
+  id: string;
+  title: string;
+  media?: string;
+  top_num: string;
+  create_date: string;
+  create_time: string;
+  url: string;
+}
+
 const getList = async (options: Options, noCache: boolean) => {
   const { type } = options;
   // 必要数据
   const { params, www } = listType[type as keyof typeof listType];
   const { year, month, day } = getCurrentDateTime(true);
   const url = `https://top.${www}.sina.com.cn/ws/GetTopDataList.php?top_type=day&top_cat=${params}&top_time=${year + month + day}&top_show_num=50`;
-  const result = await get({ url, noCache });
-  const list = parseData(result.data).data;
+  const result = await get<string>({ url, noCache });
+  const list: SinaNewsItem[] = parseData(result.data).data;
   return {
     ...result,
-    data: list.map((v: RouterType["sina-news"]) => ({
+    data: list.map((v) => ({
       id: v.id,
       title: v.title,
       author: v.media || undefined,

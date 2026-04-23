@@ -26,7 +26,7 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
 
 const getList = async (noCache: boolean) => {
   const url = `https://rss.nodeseek.com/`;
-  const result = await get({ url, noCache });
+  const result = await get<string>({ url, noCache });
   const list = await parseRSS(result.data);
   return {
     ...result,

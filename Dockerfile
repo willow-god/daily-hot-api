@@ -27,8 +27,8 @@ RUN pnpm prune --production
 FROM base AS runner
 
 # 创建用户和组
-RUN addgroup --system --gid 114514 nodejs
-RUN adduser --system --uid 114514 hono
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 hono
 
 # 创建日志目录
 RUN mkdir -p /app/logs && chown -R hono:nodejs /app/logs

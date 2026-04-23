@@ -35,8 +35,14 @@ request.interceptors.response.use(
   },
 );
 
+export interface RequestResult<T = unknown> {
+  fromCache: boolean;
+  updateTime: string;
+  data: T;
+}
+
 // GET
-export const get = async (options: Get) => {
+export const get = async <T = unknown>(options: Get): Promise<RequestResult<T>> => {
   const {
     url,
     headers,
@@ -57,7 +63,7 @@ export const get = async (options: Get) => {
         return {
           fromCache: true,
           updateTime: cachedData.updateTime,
-          data: cachedData.data,
+          data: cachedData.data as T,
         };
       }
     }
@@ -70,7 +76,7 @@ export const get = async (options: Get) => {
     await setCache(url, { data, updateTime }, ttl);
     // 返回数据
     logger.info(`✅ [${response?.status}] request was successful`);
-    return { fromCache: false, updateTime, data };
+    return { fromCache: false, updateTime, data: data as T };
   } catch (error) {
     logger.error("❌ [ERROR] request failed");
     throw error;
@@ -78,7 +84,7 @@ export const get = async (options: Get) => {
 };
 
 // POST
-export const post = async (options: Post) => {
+export const post = async <T = unknown>(options: Post): Promise<RequestResult<T>> => {
   const { url, headers, body, noCache, ttl = config.CACHE_TTL, originaInfo = false } = options;
   logger.info(`🌐 [POST] ${url}`);
   try {
@@ -88,7 +94,7 @@ export const post = async (options: Post) => {
       const cachedData = await getCache(url);
       if (cachedData) {
         logger.info("💾 [CHCHE] The request is cached");
-        return { fromCache: true, updateTime: cachedData.updateTime, data: cachedData.data };
+        return { fromCache: true, updateTime: cachedData.updateTime, data: cachedData.data as T };
       }
     }
     // 缓存不存在时请求接口
@@ -102,7 +108,7 @@ export const post = async (options: Post) => {
     }
     // 返回数据
     logger.info(`✅ [${response?.status}] request was successful`);
-    return { fromCache: false, updateTime, data };
+    return { fromCache: false, updateTime, data: data as T };
   } catch (error) {
     logger.error("❌ [ERROR] request failed");
     throw error;

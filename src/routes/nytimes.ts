@@ -34,7 +34,7 @@ const getList = async (options: Options, noCache: boolean): Promise<RouterResTyp
     area === "china"
       ? "https://cn.nytimes.com/rss/"
       : "https://rss.nytimes.com/services/xml/rss/nyt/World.xml";
-  const result = await get({
+  const result = await get<string>({
     url,
     noCache,
     headers: {

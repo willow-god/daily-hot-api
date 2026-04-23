@@ -1,5 +1,4 @@
 import type { RouterData, ListContext, Options, RouterResType } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { post } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -30,10 +29,34 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
   return routeData;
 };
 
+interface KrTemplateMaterial {
+  widgetTitle: string;
+  widgetImage: string;
+  authorName: string;
+  statCollect: number;
+}
+
+interface KrItem {
+  itemId: string;
+  publishTime: string;
+  templateMaterial: KrTemplateMaterial;
+}
+
+interface KrListData {
+  hotRankList: KrItem[];
+  videoList: KrItem[];
+  remarkList: KrItem[];
+  collectList: KrItem[];
+}
+
+interface KrResponse {
+  data: KrListData;
+}
+
 const getList = async (options: Options, noCache: boolean): Promise<RouterResType> => {
   const { type } = options;
   const url = `https://gateway.36kr.com/api/mis/nav/home/nav/rank/${type}`;
-  const result = await post({
+  const result = await post<KrResponse>({
     url,
     noCache,
     headers: {
@@ -58,7 +81,7 @@ const getList = async (options: Options, noCache: boolean): Promise<RouterResTyp
     result.data.data[(listType as Record<string, keyof typeof result.data.data>)[type || "hot"]];
   return {
     ...result,
-    data: list.map((v: RouterType["36kr"]) => {
+    data: list.map((v) => {
       const item = v.templateMaterial;
       return {
         id: v.itemId,

@@ -1,5 +1,4 @@
 import type { RouterData, RouterResType } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -17,13 +16,27 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
   return routeData;
 };
 
+interface CsdnItem {
+  productId: string;
+  articleTitle: string;
+  picList?: string[];
+  nickName: string;
+  period: string;
+  hotRankScore: number;
+  articleDetailUrl: string;
+}
+
+interface CsdnResponse {
+  data: CsdnItem[];
+}
+
 const getList = async (noCache: boolean): Promise<RouterResType> => {
   const url = "https://blog.csdn.net/phoenix/web/blog/hot-rank?page=0&pageSize=30";
-  const result = await get({ url, noCache });
+  const result = await get<CsdnResponse>({ url, noCache });
   const list = result.data.data;
   return {
     ...result,
-    data: list.map((v: RouterType["csdn"]) => ({
+    data: list.map((v) => ({
       id: v.productId,
       title: v.articleTitle,
       cover: v.picList?.[0] || undefined,

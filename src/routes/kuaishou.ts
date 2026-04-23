@@ -1,4 +1,3 @@
-import type { RouterType } from "../router.types.js";
 import type { ListItem, RouterData } from "../types.js";
 import { get } from "../utils/getData.js";
 import { parseChineseNumber } from "../utils/getNum.js";
@@ -20,12 +19,26 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
   return routeData;
 };
 
+interface KuaishouHotItem {
+  id: string;
+  name: string;
+  poster?: string;
+  hotValue?: string;
+  photoIds?: { json?: string[] };
+}
+
+interface KuaishouApolloState {
+  [key: string]: KuaishouHotItem & {
+    items?: Array<{ id: string }>;
+  };
+}
+
 const getList = async (noCache: boolean) => {
   const url = `https://www.kuaishou.com/?isHome=1`;
   const userAgent = new UserAgent({
     deviceCategory: "desktop",
   });
-  const result = await get({
+  const result = await get<string>({
     url,
     noCache,
     headers: {
@@ -48,7 +61,7 @@ const getList = async (noCache: boolean) => {
     throw new Error("快手页面结构变更，未找到 APOLLO_STATE 结束标记");
   }
   const raw = scriptSlice.slice(0, cutIndex).trim().replace(/;$/, "");
-  let jsonObject;
+  let jsonObject: KuaishouApolloState;
   try {
     // 快手返回的 JSON 末尾常带 undefined/null，需要截断到最后一个 '}' 出现
     const lastBrace = raw.lastIndexOf("}");
@@ -70,7 +83,7 @@ const getList = async (noCache: boolean) => {
   // 获取全部热榜
   allItems.forEach((item: { id: string }) => {
     // 基础数据
-    const hotItem: RouterType["kuaishou"] = jsonObject[item.id];
+    const hotItem = jsonObject[item.id];
     if (!hotItem) return;
     const id = hotItem.photoIds?.json?.[0];
     const hotValue = hotItem.hotValue ?? "";

@@ -1,5 +1,4 @@
 import type { RouterData } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -16,13 +15,24 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
   return routeData;
 };
 
+interface ToutiaoItem {
+  ClusterIdStr: string;
+  Title: string;
+  Image: { url: string };
+  HotValue: string;
+}
+
+interface ToutiaoResponse {
+  data: ToutiaoItem[];
+}
+
 const getList = async (noCache: boolean) => {
   const url = `https://www.toutiao.com/hot-event/hot-board/?origin=toutiao_pc`;
-  const result = await get({ url, noCache });
+  const result = await get<ToutiaoResponse>({ url, noCache });
   const list = result.data.data;
   return {
     ...result,
-    data: list.map((v: RouterType["toutiao"]) => ({
+    data: list.map((v) => ({
       id: v.ClusterIdStr,
       title: v.Title,
       cover: v.Image.url,

@@ -25,7 +25,7 @@ const getID = (url: string) => {
 
 const getList = async (noCache: boolean) => {
   const url = `https://www.jianshu.com/`;
-  const result = await get({
+  const result = await get<string>({
     url,
     noCache,
     headers: {

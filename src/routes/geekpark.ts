@@ -1,5 +1,4 @@
 import type { RouterData } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -17,13 +16,35 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
   return routeData;
 };
 
+interface GeekparkAuthor {
+  nickname: string;
+}
+
+interface GeekparkPost {
+  id: string;
+  title: string;
+  abstract: string;
+  cover_url: string;
+  authors?: GeekparkAuthor[];
+  views: number;
+  published_timestamp: number;
+}
+
+interface GeekparkItem {
+  post: GeekparkPost;
+}
+
+interface GeekparkResponse {
+  homepage_posts: GeekparkItem[];
+}
+
 const getList = async (noCache: boolean) => {
   const url = `https://mainssl.geekpark.net/api/v2`;
-  const result = await get({ url, noCache });
-  const list = result.data?.homepage_posts;
+  const result = await get<GeekparkResponse>({ url, noCache });
+  const list = result.data.homepage_posts;
   return {
     ...result,
-    data: list.map((v: RouterType["geekpark"]) => {
+    data: list.map((v) => {
       const post = v.post;
       return {
         id: post.id,

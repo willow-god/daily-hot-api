@@ -1,5 +1,4 @@
 import type { RouterData } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -16,13 +15,27 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
   return routeData;
 };
 
+interface NeteaseItem {
+  docid: string;
+  title: string;
+  imgsrc: string;
+  source: string;
+  ptime: string;
+}
+
+interface NeteaseResponse {
+  data: {
+    list: NeteaseItem[];
+  };
+}
+
 const getList = async (noCache: boolean) => {
   const url = `https://m.163.com/fe/api/hot/news/flow`;
-  const result = await get({ url, noCache });
+  const result = await get<NeteaseResponse>({ url, noCache });
   const list = result.data.data.list;
   return {
     ...result,
-    data: list.map((v: RouterType["netease-news"]) => ({
+    data: list.map((v) => ({
       id: v.docid,
       title: v.title,
       cover: v.imgsrc,

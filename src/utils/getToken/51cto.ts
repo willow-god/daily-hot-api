@@ -5,7 +5,7 @@ import md5 from "md5";
 export const getToken = async () => {
   const cachedData = await getCache("51cto-token");
   if (cachedData?.data) return cachedData.data;
-  const result = await get({
+  const result = await get<{ data: { data: { token: string } } }>({
     url: "https://api-media.51cto.com/api/token-get",
   });
   const token = result.data.data.data.token;

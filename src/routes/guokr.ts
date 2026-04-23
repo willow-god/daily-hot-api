@@ -1,5 +1,4 @@
 import type { RouterData } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -17,9 +16,22 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
   return routeData;
 };
 
+interface GuokrAuthor {
+  nickname: string;
+}
+
+interface GuokrItem {
+  id: string;
+  title: string;
+  summary: string;
+  small_image: string;
+  author?: GuokrAuthor;
+  date_modified: string;
+}
+
 const getList = async (noCache: boolean) => {
   const url = `https://www.guokr.com/beta/proxy/science_api/articles?limit=30`;
-  const result = await get({
+  const result = await get<GuokrItem[]>({
     url,
     noCache,
     headers: {
@@ -30,7 +42,7 @@ const getList = async (noCache: boolean) => {
   const list = result.data;
   return {
     ...result,
-    data: list.map((v: RouterType["guokr"]) => ({
+    data: list.map((v) => ({
       id: v.id,
       title: v.title,
       desc: v.summary,

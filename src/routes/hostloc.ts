@@ -33,7 +33,7 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
 const getList = async (options: Options, noCache: boolean) => {
   const { type } = options;
   const url = `https://hostloc.com/forum.php?mod=guide&view=${type}&rss=1`;
-  const result = await get({
+  const result = await get<string>({
     url,
     noCache,
     headers: {

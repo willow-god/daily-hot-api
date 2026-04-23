@@ -1,5 +1,4 @@
 import type { RouterData } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -17,13 +16,41 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
   return routeData;
 };
 
+interface NewsmthAccount {
+  name: string;
+}
+
+interface NewsmthArticle {
+  topicId: string;
+  subject: string;
+  body: string;
+  account?: NewsmthAccount;
+  postTime: string;
+}
+
+interface NewsmthBoard {
+  title: string;
+}
+
+interface NewsmthTopic {
+  firstArticleId: string;
+  article: NewsmthArticle;
+  board?: NewsmthBoard;
+}
+
+interface NewsmthResponse {
+  data?: {
+    topics: NewsmthTopic[];
+  };
+}
+
 const getList = async (noCache: boolean) => {
   const url = `https://wap.newsmth.net/wap/api/hot/global`;
-  const result = await get({ url, noCache });
-  const list = result.data?.data?.topics;
+  const result = await get<NewsmthResponse>({ url, noCache });
+  const list = result.data.data!.topics;
   return {
     ...result,
-    data: list.map((v: RouterType["newsmth"]) => {
+    data: list.map((v) => {
       const post = v.article;
       const url = `https://wap.newsmth.net/article/${post.topicId}?title=${v.board?.title}&from=home`;
       return {

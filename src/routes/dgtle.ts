@@ -1,5 +1,4 @@
 import type { RouterData } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -18,13 +17,28 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
   return routeData;
 };
 
+interface DgtleItem {
+  id: string;
+  title: string;
+  content: string;
+  cover: string;
+  from: string;
+  membernum: number;
+  created_at: string;
+  type: string;
+}
+
+interface DgtleResponse {
+  items: DgtleItem[];
+}
+
 const getList = async (noCache: boolean) => {
   const url = `https://opser.api.dgtle.com/v2/news/index`;
-  const result = await get({ url, noCache });
-  const list = result.data?.items;
+  const result = await get<DgtleResponse>({ url, noCache });
+  const list = result.data.items;
   return {
     ...result,
-    data: list.map((v: RouterType["dgtle"]) => ({
+    data: list.map((v) => ({
       id: v.id,
       title: v.title || v.content,
       desc: v.content,

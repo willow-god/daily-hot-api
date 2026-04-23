@@ -1,5 +1,4 @@
 import type { RouterData, ListContext, Options } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -27,14 +26,27 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
   return routeData;
 };
 
+interface HelloGithubItem {
+  item_id: string;
+  title: string;
+  summary: string;
+  author: string;
+  updated_at: string;
+  clicks_total: number;
+}
+
+interface HelloGithubResponse {
+  data: HelloGithubItem[];
+}
+
 const getList = async (options: Options, noCache: boolean) => {
   const { sort } = options;
   const url = `https://abroad.hellogithub.com/v1/?sort_by=${sort}&tid=&page=1`;
-  const result = await get({ url, noCache });
+  const result = await get<HelloGithubResponse>({ url, noCache });
   const list = result.data.data;
   return {
     ...result,
-    data: list.map((v: RouterType["hellogithub"]) => ({
+    data: list.map((v) => ({
       id: v.item_id,
       title: v.title,
       desc: v.summary,

@@ -1,5 +1,4 @@
 import type { RouterData, ListContext, Options } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 
 export const handleRoute = async (c: ListContext, noCache: boolean) => {
@@ -28,14 +27,28 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
   return routeData;
 };
 
+interface HupuItem {
+  tid: string;
+  title: string;
+  username: string;
+  replies: number;
+  url: string;
+}
+
+interface HupuResponse {
+  data: {
+    topicThreads: HupuItem[];
+  };
+}
+
 const getList = async (options: Options, noCache: boolean) => {
   const { type } = options;
   const url = `https://m.hupu.com/api/v2/bbs/topicThreads?topicId=${type}&page=1`;
-  const result = await get({ url, noCache });
+  const result = await get<HupuResponse>({ url, noCache });
   const list = result.data.data.topicThreads;
   return {
     ...result,
-    data: list.map((v: RouterType["hupu"]) => ({
+    data: list.map((v) => ({
       id: v.tid,
       title: v.title,
       author: v.username,

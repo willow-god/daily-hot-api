@@ -1,5 +1,4 @@
 import type { RouterData, ListContext, Options, RouterResType } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import getBiliWbi from "../utils/getToken/bilibili.js";
 import { getTime } from "../utils/getTime.js";
@@ -40,11 +39,38 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
   return routeData;
 };
 
+interface BiliOwner {
+  name: string;
+}
+
+interface BiliStat {
+  view: number;
+}
+
+interface BiliItem {
+  bvid: string;
+  title: string;
+  desc: string;
+  pic?: string;
+  owner?: BiliOwner;
+  pubdate: number;
+  stat?: BiliStat;
+  short_link_v2?: string;
+  author?: string;
+  video_review?: number;
+}
+
+interface BiliResponse {
+  data?: {
+    list: BiliItem[];
+  };
+}
+
 const getList = async (options: Options, noCache: boolean): Promise<RouterResType> => {
   const { type } = options;
   const wbiData = await getBiliWbi();
   const url = `https://api.bilibili.com/x/web-interface/ranking/v2?rid=${type}&type=all&${wbiData}`;
-  const result = await get({
+  const result = await get<BiliResponse>({
     url,
     headers: {
       'Referer': 'https://www.bilibili.com/ranking/all',
@@ -65,13 +91,13 @@ const getList = async (options: Options, noCache: boolean): Promise<RouterResTyp
   });
 
   // 是否触发风控
-  if (result.data?.data?.list?.length > 0) {
+  if (result.data?.data?.list?.length && result.data.data.list.length > 0) {
     logger.info('bilibili 新接口')
     const list = result.data.data.list;
     return {
       fromCache: result.fromCache,
       updateTime: result.updateTime,
-      data: list.map((v: RouterType["bilibili"]) => ({
+      data: list.map((v) => ({
         id: v.bvid,
         title: v.title,
         desc: v.desc || "该视频暂无简介",
@@ -88,7 +114,7 @@ const getList = async (options: Options, noCache: boolean): Promise<RouterResTyp
   else {
     logger.info('bilibili 备用接口')
     const url = `https://api.bilibili.com/x/web-interface/ranking?jsonp=jsonp?rid=${type}&type=all&callback=__jp0`;
-    const result = await get({
+    const result = await get<BiliResponse>({
       url,
       headers: {
         Referer: `https://www.bilibili.com/ranking/all`,
@@ -97,10 +123,10 @@ const getList = async (options: Options, noCache: boolean): Promise<RouterResTyp
       },
       noCache,
     });
-    const list = result.data.data.list;
+    const list = result.data.data!.list;
     return {
       ...result,
-      data: list.map((v: RouterType["bilibili"]) => ({
+      data: list.map((v) => ({
         id: v.bvid,
         title: v.title,
         desc: v.desc || "该视频暂无简介",

@@ -1,5 +1,4 @@
 import type { RouterData, ListContext, Options } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -23,14 +22,32 @@ export const handleRoute = async (c: ListContext, noCache: boolean) => {
   return routeData;
 };
 
+interface SspaiAuthor {
+  nickname: string;
+}
+
+interface SspaiItem {
+  id: string;
+  title: string;
+  summary: string;
+  banner: string;
+  author: SspaiAuthor;
+  released_time: number;
+  like_count: number;
+}
+
+interface SspaiResponse {
+  data: SspaiItem[];
+}
+
 const getList = async (options: Options, noCache: boolean) => {
   const { type } = options;
   const url = `https://sspai.com/api/v1/article/tag/page/get?limit=40&tag=${type}`;
-  const result = await get({ url, noCache });
+  const result = await get<SspaiResponse>({ url, noCache });
   const list = result.data.data;
   return {
     ...result,
-    data: list.map((v: RouterType["sspai"]) => ({
+    data: list.map((v) => ({
       id: v.id,
       title: v.title,
       desc: v.summary,

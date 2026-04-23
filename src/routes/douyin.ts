@@ -1,5 +1,4 @@
 import type { RouterData } from "../types.js";
-import type { RouterType } from "../router.types.js";
 import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
 
@@ -17,14 +16,20 @@ export const handleRoute = async (_: undefined, noCache: boolean) => {
   return routeData;
 };
 
+interface DyCookieResponse {
+  headers: {
+    "set-cookie": string[];
+  };
+}
+
 // 获取抖音临时 Cookis
 const getDyCookies = async () => {
   try {
     const cookisUrl = "https://www.douyin.com/passport/general/login_guiding_strategy/?aid=6383";
-    const { data } = await get({ url: cookisUrl, originaInfo: true });
+    const { data } = await get<DyCookieResponse>({ url: cookisUrl, originaInfo: true });
     const pattern = /passport_csrf_token=(.*); Path/s;
     const matchResult = data.headers["set-cookie"][0].match(pattern);
-    const cookieData = matchResult[1];
+    const cookieData = matchResult![1];
     return cookieData;
   } catch (error) {
     console.error("获取抖音 Cookie 出错" + error);
@@ -32,11 +37,24 @@ const getDyCookies = async () => {
   }
 };
 
+interface DouyinWordItem {
+  sentence_id: string;
+  word: string;
+  event_time: string;
+  hot_value: number;
+}
+
+interface DouyinResponse {
+  data: {
+    word_list: DouyinWordItem[];
+  };
+}
+
 const getList = async (noCache: boolean) => {
   const url =
     "https://www.douyin.com/aweme/v1/web/hot/search/list/?device_platform=webapp&aid=6383&channel=channel_pc_web&detail_list=1";
   const cookie = await getDyCookies();
-  const result = await get({
+  const result = await get<DouyinResponse>({
     url,
     noCache,
     headers: {
@@ -46,7 +64,7 @@ const getList = async (noCache: boolean) => {
   const list = result.data.data.word_list;
   return {
     ...result,
-    data: list.map((v: RouterType["douyin"]) => ({
+    data: list.map((v) => ({
       id: v.sentence_id,
       title: v.word,
       timestamp: getTime(v.event_time),

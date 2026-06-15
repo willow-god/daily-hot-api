@@ -76,6 +76,9 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
-    ]
+    ],
+    "allowBuilds": {
+      "esbuild": false
+    }
   }
 }

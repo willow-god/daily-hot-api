@@ -185,7 +185,7 @@ const Layout: FC = (props) => {
         {props.children}
         <footer>
           <div class="social">
-            <a href="https://github.com/imsyy/DailyHotApi" className="link" target="_blank">
+            <a href="https://github.com/willow-god/daily-hot-api" className="link" target="_blank">
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
@@ -193,7 +193,7 @@ const Layout: FC = (props) => {
                 />
               </svg>
             </a>
-            <a href="https://www.imsyy.top" className="link" target="_blank">
+            <a href="https://www.liushen.fun" className="link" target="_blank">
               <svg
                 className="btn-icon"
                 xmlns="http://www.w3.org/2000/svg"
@@ -207,7 +207,7 @@ const Layout: FC = (props) => {
                 />
               </svg>
             </a>
-            <a href="mailto:one@imsyy.top" className="link">
+            <a href="mailto:01@liushen.fun" className="link">
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
@@ -218,8 +218,8 @@ const Layout: FC = (props) => {
           </div>
           <div class="power">
             Copyright&nbsp;©&nbsp;
-            <a href="https://www.imsyy.top/" target="_blank">
-              無名
+            <a href="https://www.liushen.fun/" target="_blank">
+              清羽飞扬
             </a>
             &nbsp;|&nbsp;Power by&nbsp;
             <a href="https://github.com/honojs/hono/" target="_blank">
@@ -228,7 +228,7 @@ const Layout: FC = (props) => {
           </div>
           <div class="icp">
             <a href="https://beian.miit.gov.cn/" target="_blank">
-              豫ICP备2022018134号-1
+              陕ICP备2024028531号-1
             </a>
           </div>
         </footer>

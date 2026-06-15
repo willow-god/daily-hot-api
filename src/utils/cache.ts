@@ -9,10 +9,51 @@ interface CacheData {
   data: unknown;
 }
 
+export const DEFAULT_CACHE_TTL = 3600;
+export const MAX_CACHE_TTL = 60 * 60 * 24;
+
+export const normalizeCacheTtl = (ttl: number = config.CACHE_TTL): number => {
+  const fallbackTtl =
+    Number.isFinite(config.CACHE_TTL) && config.CACHE_TTL > 0
+      ? config.CACHE_TTL
+      : DEFAULT_CACHE_TTL;
+  const safeTtl = Number.isFinite(ttl) && ttl > 0 ? ttl : fallbackTtl;
+  return Math.min(Math.floor(safeTtl), MAX_CACHE_TTL);
+};
+
+type RedisCacheHitDecision =
+  | {
+      action: "hit";
+      repairTtl?: number;
+    }
+  | {
+      action: "miss";
+    };
+
+export const resolveRedisCacheHit = (
+  cachedData: CacheData,
+  redisTtl: number,
+  fallbackTtl: number = config.CACHE_TTL,
+  nowMs: number = Date.now(),
+): RedisCacheHitDecision => {
+  if (redisTtl !== -1) return { action: "hit" };
+  const normalizedFallbackTtl = normalizeCacheTtl(fallbackTtl);
+
+  const updateTimeMs = Date.parse(cachedData.updateTime);
+  if (!Number.isFinite(updateTimeMs)) return { action: "miss" };
+
+  const ageSeconds = Math.floor((nowMs - updateTimeMs) / 1000);
+  const remainingTtl = normalizedFallbackTtl - ageSeconds;
+
+  if (remainingTtl <= 0) return { action: "miss" };
+
+  return { action: "hit", repairTtl: remainingTtl };
+};
+
 // init NodeCache
 const cache = new NodeCache({
   // 缓存过期时间（ 秒 ）
-  stdTTL: config.CACHE_TTL,
+  stdTTL: normalizeCacheTtl(),
   // 定期检查过期缓存（ 秒 ）
   checkperiod: 600,
   // 克隆变量
@@ -78,14 +119,37 @@ cache.on("del", (key) => {
 /**
  * 从缓存中获取数据
  * @param key 缓存键
+ * @param ttl 兜底缓存过期时间（ 秒 ）
  * @returns 缓存数据
  */
-export const getCache = async (key: string): Promise<CacheData | undefined> => {
+export const getCache = async (
+  key: string,
+  ttl: number = config.CACHE_TTL,
+): Promise<CacheData | undefined> => {
+  const normalizedTtl = normalizeCacheTtl(ttl);
   await ensureRedisConnection();
   if (isRedisAvailable) {
     try {
       const redisResult = await redis.get(key);
-      if (redisResult) return parse(redisResult);
+      if (redisResult) {
+        const cachedData = parse(redisResult) as CacheData;
+        const redisTtl = await redis.ttl(key);
+        const decision = resolveRedisCacheHit(cachedData, redisTtl, normalizedTtl);
+
+        if (decision.action === "miss") {
+          await redis.del(key);
+          cache.del(key);
+          logger.info(`⏳ [Redis] Key "${key}" has no TTL and is stale.`);
+          return undefined;
+        }
+
+        if (decision.repairTtl) {
+          await redis.expire(key, decision.repairTtl);
+          logger.info(`⏳ [Redis] Key "${key}" TTL has been repaired.`);
+        }
+
+        return cachedData;
+      }
     } catch (error) {
       logger.error(
         `📦 [Redis] get error: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -107,10 +171,11 @@ export const setCache = async (
   value: CacheData,
   ttl: number = config.CACHE_TTL,
 ): Promise<boolean> => {
+  const normalizedTtl = normalizeCacheTtl(ttl);
   // 尝试写入 Redis
   if (isRedisAvailable && !Buffer.isBuffer(value?.data)) {
     try {
-      await redis.set(key, stringify(value), "EX", ttl);
+      await redis.set(key, stringify(value), "EX", normalizedTtl);
       if (logger) logger.info(`💾 [REDIS] ${key} has been cached`);
     } catch (error) {
       logger.error(
@@ -118,7 +183,7 @@ export const setCache = async (
       );
     }
   }
-  const success = cache.set(key, value, ttl);
+  const success = cache.set(key, value, normalizedTtl);
   if (logger) logger.info(`💾 [NodeCache] ${key} has been cached`);
   return success;
 };

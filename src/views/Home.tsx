@@ -1,8 +1,15 @@
 import type { FC } from "hono/jsx";
 import { html } from "hono/html";
 import Layout from "./Layout.js";
+import {
+  HOME_STATUS_BATCH_SIZE,
+  HOME_STATUS_TIMEOUT_MS,
+  ROUTE_DISPLAY_NAMES,
+} from "../utils/homeStatus.js";
 
 const Home: FC = () => {
+  const routeDisplayNamesPayload = encodeURIComponent(JSON.stringify(ROUTE_DISPLAY_NAMES));
+
   return (
     <Layout title="DailyHot API">
       <main className="home">
@@ -48,15 +55,109 @@ const Home: FC = () => {
             <span className="btn-text">项目文档</span>
           </button>
         </div>
+        <section className="status-panel" aria-label="接口状态查询">
+          <div className="status-panel-head">
+            <div>
+              <p className="status-kicker">LIVE CHECK</p>
+              <h2>接口状态</h2>
+            </div>
+            <span id="status-summary">准备检测</span>
+          </div>
+          <div id="status-grid" className="status-grid" aria-live="polite"></div>
+        </section>
       </main>
       {html`
         <script>
+          const routeDisplayNames = JSON.parse(decodeURIComponent("${routeDisplayNamesPayload}"));
+          const statusBatchSize = ${HOME_STATUS_BATCH_SIZE};
+          const statusTimeoutMs = ${HOME_STATUS_TIMEOUT_MS};
+
           document.getElementById("all-button").addEventListener("click", () => {
             window.location.href = "/all";
           });
           document.getElementById("docs-button").addEventListener("click", () => {
             window.open("https://blog.imsyy.top/posts/2024/0408");
           });
+
+          const statusGrid = document.getElementById("status-grid");
+          const statusSummary = document.getElementById("status-summary");
+
+          const setSummary = (checked, total) => {
+            if (!total) {
+              statusSummary.textContent = "等待列表";
+              return;
+            }
+            statusSummary.textContent = checked >= total ? "检测完成" : checked + " / " + total;
+          };
+
+          const createCard = (route) => {
+            const card = document.createElement("div");
+            const dot = document.createElement("span");
+            const name = document.createElement("span");
+
+            card.className = "status-card is-pending";
+            card.dataset.route = route.name;
+            dot.className = "status-dot";
+            dot.setAttribute("aria-hidden", "true");
+            name.className = "status-name";
+            name.textContent = routeDisplayNames[route.name] || route.name;
+            card.append(dot, name);
+            return card;
+          };
+
+          const markStatus = (card, status) => {
+            card.classList.remove("is-pending", "is-online", "is-offline");
+            card.classList.add(status === "online" ? "is-online" : "is-offline");
+          };
+
+          const checkRoute = async (route, card) => {
+            const controller = new AbortController();
+            const timer = window.setTimeout(() => controller.abort(), statusTimeoutMs);
+
+            try {
+              const response = await fetch(route.path + "?limit=1&cache=true", {
+                signal: controller.signal,
+                headers: { Accept: "application/json" },
+              });
+              if (!response.ok) throw new Error("bad status");
+              const data = await response.json();
+              if (data && data.code === 200) markStatus(card, "online");
+              else markStatus(card, "offline");
+            } catch (error) {
+              markStatus(card, "offline");
+            } finally {
+              window.clearTimeout(timer);
+            }
+          };
+
+          const runStatusChecks = async () => {
+            try {
+              const response = await fetch("/all", { headers: { Accept: "application/json" } });
+              const payload = await response.json();
+              const routes = Array.isArray(payload.routes)
+                ? payload.routes.filter((route) => route && route.path)
+                : [];
+
+              statusGrid.innerHTML = "";
+              const cards = routes.map((route) => {
+                const card = createCard(route);
+                statusGrid.appendChild(card);
+                return { route, card };
+              });
+
+              setSummary(0, cards.length);
+              for (let index = 0; index < cards.length; index += statusBatchSize) {
+                const batch = cards.slice(index, index + statusBatchSize);
+                await Promise.all(batch.map(({ route, card }) => checkRoute(route, card)));
+                setSummary(Math.min(index + statusBatchSize, cards.length), cards.length);
+              }
+            } catch (error) {
+              statusSummary.textContent = "列表获取失败";
+              statusGrid.innerHTML = "";
+            }
+          };
+
+          runStatusChecks();
         </script>
       `}
     </Layout>

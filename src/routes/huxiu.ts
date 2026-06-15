@@ -1,6 +1,6 @@
 import type { RouterData } from "../types.js";
+import { get } from "../utils/getData.js";
 import { getTime } from "../utils/getTime.js";
-import axios from "axios";
 
 export const handleRoute = async (_: undefined, noCache: boolean) => {
   const listData = await getList(noCache);
@@ -42,17 +42,17 @@ interface HuxiuApiResponse {
 const getList = async (noCache: boolean) => {
   // PC 端接口
   const url = `https://moment-api.huxiu.com/web-v3/moment/feed?platform=www`;
-  const res = await axios.get<HuxiuApiResponse>(url, {
+  const result = await get<HuxiuApiResponse>({
+    url,
+    noCache,
     headers: {
       "User-Agent": "Mozilla/5.0",
       Referer: "https://www.huxiu.com/moment/",
     },
-    timeout: 10000,
   });
-  const list = res.data?.data?.moment_list?.datalist || [];
+  const list = result.data?.data?.moment_list?.datalist || [];
   return {
-    fromCache: false,
-    updateTime: new Date().toISOString(),
+    ...result,
     data: list.map((v) => {
       const content = (v.content || "").replace(/<br\s*\/?>/gi, "\n");
       const [titleLine, ...rest] = content

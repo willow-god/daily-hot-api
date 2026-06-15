@@ -16,6 +16,10 @@ const Layout: FC = (props) => {
         --text-color-gray: #cbcbcb;
         --text-color-hover: #fff;
         --icon-color: #444;
+        --status-pending: #8b9291;
+        --status-online: #18a058;
+        --status-offline: #d03050;
+        --status-accent: #b48a3c;
       }
       @media (prefers-color-scheme: dark) {
         :root {
@@ -23,6 +27,10 @@ const Layout: FC = (props) => {
           --text-color-gray: #cbcbcb;
           --text-color-hover: #3c3c3c;
           --icon-color: #cbcbcb;
+          --status-pending: #9ba3a1;
+          --status-online: #38d982;
+          --status-offline: #ff5a72;
+          --status-accent: #d6b35f;
         }
       }
       a {
@@ -31,7 +39,9 @@ const Layout: FC = (props) => {
       }
       body {
         width: 100vw;
-        height: 100vh;
+        min-height: 100vh;
+        overflow-x: hidden;
+        overflow-y: auto;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -50,7 +60,8 @@ const Layout: FC = (props) => {
         justify-content: center;
         padding: 20px;
         margin: 20px;
-        height: 100%;
+        width: min(100%, 1040px);
+        flex: 1;
       }
       .img {
         width: 120px;
@@ -121,6 +132,143 @@ const Layout: FC = (props) => {
       }
       .control button i {
         margin-right: 6px;
+      }
+      .status-panel {
+        width: min(100%, 920px);
+        margin-top: 34px;
+        padding: 18px;
+      }
+      .status-panel-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 14px;
+      }
+      .status-kicker {
+        font-family: Georgia, "Times New Roman", serif;
+        color: var(--status-accent);
+        font-size: 11px;
+        line-height: 1;
+        margin-bottom: 7px;
+      }
+      .status-panel h2 {
+        font-size: 19px;
+        line-height: 1.2;
+        font-weight: 700;
+      }
+      #status-summary {
+        flex: 0 0 auto;
+        min-width: 88px;
+        padding: 7px 10px;
+        border-radius: 999px;
+        color: var(--text-color-gray);
+        font-size: 12px;
+        line-height: 1;
+        text-align: center;
+      }
+      .status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
+        gap: 10px;
+        overflow: visible;
+      }
+      .status-card {
+        position: relative;
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        min-height: 42px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        transition:
+          transform 0.25s,
+          opacity 0.25s;
+      }
+      .status-card:hover {
+        transform: translateY(-2px);
+      }
+      .status-name {
+        min-width: 0;
+        overflow: hidden;
+        color: var(--text-color);
+        font-size: 13px;
+        line-height: 1.2;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .status-dot {
+        position: relative;
+        flex: 0 0 auto;
+        width: 10px;
+        height: 10px;
+        margin-right: 10px;
+        border-radius: 50%;
+        background: var(--status-pending);
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--status-pending) 40%, transparent);
+      }
+      .status-dot::after {
+        content: "";
+        position: absolute;
+        inset: -7px;
+        border-radius: 50%;
+        color: var(--status-pending);
+        opacity: 0.42;
+        box-shadow: 0 0 0 1px currentColor;
+        animation: statusPulse 1.8s ease-out infinite;
+      }
+      .status-card.is-online {
+        opacity: 1;
+      }
+      .status-card.is-online .status-dot {
+        background: var(--status-online);
+        box-shadow: 0 0 18px color-mix(in srgb, var(--status-online) 54%, transparent);
+      }
+      .status-card.is-online .status-dot::after {
+        color: var(--status-online);
+      }
+      .status-card.is-offline {
+        opacity: 1;
+      }
+      .status-card.is-offline .status-dot {
+        background: var(--status-offline);
+        box-shadow: 0 0 18px color-mix(in srgb, var(--status-offline) 54%, transparent);
+      }
+      .status-card.is-offline .status-dot::after {
+        color: var(--status-offline);
+      }
+      @keyframes statusPulse {
+        0% {
+          transform: scale(0.58);
+          opacity: 0.46;
+        }
+        100% {
+          transform: scale(1.9);
+          opacity: 0;
+        }
+      }
+      @media (max-width: 720px) {
+        main {
+          justify-content: flex-start;
+          margin: 12px;
+          padding: 18px 12px;
+        }
+        .title {
+          margin-bottom: 28px;
+        }
+        .status-panel {
+          margin-top: 26px;
+          padding: 14px;
+        }
+        .status-panel-head {
+          align-items: flex-start;
+        }
+        .status-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .status-name {
+          font-size: 12px;
+        }
       }
       footer {
         display: flex;

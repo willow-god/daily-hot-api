@@ -82,7 +82,7 @@ export async function getTrendingRepos(
 ): Promise<TrendingRepoInfo> {
   const url = `https://github.com/trending?since=${type}`;
   // 先从缓存中取
-  const cachedData = await getCache(url);
+  const cachedData = await getCache(url, ttl);
   if (cachedData) {
     logger.info("💾 [CHCHE] The request is cached");
     return {
@@ -195,7 +195,7 @@ export async function getTrendingRepos(
         logger.error("❌ [ERROR] 所有尝试请求失败！");
         throw lastError;
       }
-      
+
       // 等待一段时间后重试 (1秒、2秒、4秒...)
       await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
       continue;
